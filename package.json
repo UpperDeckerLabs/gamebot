@@ -1,0 +1,14 @@
+{
+  "name": "gamebot",
+  "version": "1.0.0",
+  "description": "GameBot - A Slack Game Player",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "botkit": "0.0.5"
+  }
+}
