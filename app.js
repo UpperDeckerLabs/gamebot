@@ -1,6 +1,14 @@
-var token = require('./token');
 var Botkit = require('botkit');
+var path = require('path');
+
+var token = require('./token');
 var game21 = require('./game.21');
+var Server = require('./server');
+
+var port = 8080;
+var folder = path.join(__dirname, 'static');
+
+Server.run(port, folder);
 
 var controller = Botkit.slackbot({
     logLevel: 1

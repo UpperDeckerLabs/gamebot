@@ -9,59 +9,73 @@ module.exports = game;
 var _maxScore = 21;
 
 function newGame(bot, message) {
+    var user;
     bot.startConversation(message, dealHand);
+
+    function dealHand(response, convo) {
+
+        bot.api.users.info({user:message.user}, function(err, data) {
+            user = data.user;
+
+            // Create a new 52 card poker deck
+            var deck = new Deck();
+            deck.shuffle();
+
+            var hand = [];
+
+            hand.push(deck.draw());
+            hand.push(deck.draw());
+
+            var game = {
+                deck: deck,
+                hand: hand,
+                user: user
+            };
+
+            takeTurn(game, response, convo);
+            convo.next();
+
+            console.log('Starting game with user: ' + user.name);
+        });
+    }
 }
 
-function dealHand(response, convo) {
-    // Create a new 52 card poker deck
-    var deck = new Deck();
-    deck.shuffle();
-
-    var hand = [];
-
-    hand.push(deck.draw());
-    hand.push(deck.draw());
-
-    takeTurn(deck, hand, response, convo);
-    convo.next();
-}
-
-function hitCard(deck, hand, response, convo) {
+function hitCard(game, response, convo) {
     convo.say('hitting');
-    hand.push(deck.draw());
-    if (handValue(hand) > _maxScore) {
-        busted(deck, hand, response, convo);
+    game.hand.push(game.deck.draw());
+    if (handValue(game.hand) > _maxScore) {
+        busted(game, response, convo);
     }
     else {
-        takeTurn(deck, hand, response, convo);
+        takeTurn(game, response, convo);
     }
     convo.next();
 }
 
-function stay(deck, hand, response, convo) {
+function stay(game, response, convo) {
     convo.say('staying');
     convo.next();
 }
 
-function busted(deck, hand, response, convo) {
-    convo.say('Your hand: ' + printHand(hand));
+function busted(game, response, convo) {
+    convo.say(game.user.name + ', your hand: ' + printHand(game.hand));
     convo.say('BUSTED!');
     convo.next();
 }
 
-function takeTurn(deck, hand, response, convo) {
-    convo.say('Your hand: ' + printHand(hand));
+function takeTurn(game, response, convo) {
+    convo.say(game.user.name + ', your hand: ' + printHand(game.hand));
     convo.ask('Would you like to "(H)IT or (S)TAY"?', [
         {
             pattern: /^(h|H|hit|Hit|HIT)/i,
             callback: function(response, convo) {
-                hitCard(deck, hand, response, convo);
+                hitCard(game, response, convo);
             }
         },
         {
             pattern: /^(s|S|stay|Stay|STAY)/i,
             callback: function(response, convo) {
-                stay(deck, hand, response, convo);
+                stay(game, response, convo);
             }
         },
         {
