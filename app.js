@@ -1,11 +1,13 @@
 var Botkit = require('botkit');
 var path = require('path');
+var process = require('process');
 
 var token = require('./token');
 var game21 = require('./game.21');
 var Server = require('./server');
 
-var port = 8080;
+var port = process.env.PORT ? process.env.PORT : 8080;
+
 var folder = path.join(__dirname, 'static');
 
 Server.run(port, folder);

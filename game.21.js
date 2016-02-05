@@ -1,4 +1,6 @@
 var Deck = require('./deck');
+var Dealer = require('./dealer');
+var Hand = require('./hand');
 
 var game = {
     newGame: newGame
@@ -17,19 +19,25 @@ function newGame(bot, message) {
         bot.api.users.info({user:message.user}, function(err, data) {
             user = data.user;
 
+            var dealer = new Dealer();
+
             // Create a new 52 card poker deck
             var deck = new Deck();
             deck.shuffle();
 
-            var hand = [];
+            var hand = new Hand();
 
-            hand.push(deck.draw());
-            hand.push(deck.draw());
+            hand.add(deck.draw());
+            hand.add(deck.draw());
+
+            dealer.addCard(deck.draw());
 
             var game = {
-                deck: deck,
-                hand: hand,
-                user: user
+                dealer: dealer,
+                deck:   deck,
+                hand:   hand,
+                user:   user,
+                busted: false
             };
 
             takeTurn(game, response, convo);
@@ -42,8 +50,8 @@ function newGame(bot, message) {
 
 function hitCard(game, response, convo) {
     convo.say('hitting');
-    game.hand.push(game.deck.draw());
-    if (handValue(game.hand) > _maxScore) {
+    game.hand.add(game.deck.draw());
+    if (game.hand.value() > _maxScore) {
         busted(game, response, convo);
     }
     else {
@@ -54,17 +62,21 @@ function hitCard(game, response, convo) {
 
 function stay(game, response, convo) {
     convo.say('staying');
+    endGame(game, response, convo);
     convo.next();
 }
 
 function busted(game, response, convo) {
-    convo.say(game.user.name + ', your hand: ' + printHand(game.hand));
+    convo.say(game.user.name + ', your hand: ' + game.hand.print());
     convo.say('BUSTED!');
+    game.busted = true;
+    endGame(game, response, convo);
     convo.next();
 }
 
 function takeTurn(game, response, convo) {
-    convo.say(game.user.name + ', your hand: ' + printHand(game.hand));
+    convo.say(game.user.name + ', your hand: ' + game.hand.print());
+    convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
     convo.ask('Would you like to "(H)IT or (S)TAY"?', [
         {
             pattern: /^(h|H|hit|Hit|HIT)/i,
@@ -88,45 +100,25 @@ function takeTurn(game, response, convo) {
     ]);
 }
 
-function printHand(hand) {
-    var print = '';
-    hand.forEach(function(card) {
-        print += card.pretty() + ' ';
+function endGame(game, response, convo) {
+    game.dealer.playHand(game.deck).then(function() {
+        convo.say(game.user.name + ', your hand: ' + game.hand.print());
+        convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
+        var gameResult;
+        var playerValue = game.hand.value();
+        var dealerValue = game.dealer.hand.value();
+        if (game.busted) {
+            gameResult = 'Lost. Busted.';
+        } else if (game.dealer.busted) {
+            gameResult = 'Won! Dealer Busted!';
+        } else if (playerValue < dealerValue) {
+            gameResult = 'Lost. Dealer Beat.';
+        } else if (playerValue === dealerValue) {
+            gameResult = 'Push';
+        } else {
+            gameResult = 'Won! Beat Dealer.';
+        }
+        convo.say('Game ' + gameResult);
+        convo.next();
     });
-    print += '(' + handValue(hand) + ')';
-    return print;
-}
-
-function handValue(hand){
-    var aces = 0;
-    var totalValue = 0;
-    var faceRanks = ['J','Q','K'];
-
-    // Get the values of each card (counting 1 for each ace)
-    hand.forEach(function(card){
-        // Face Cards
-        if(faceRanks.indexOf(card.rank) !== -1){
-            totalValue += 10;
-        }
-        // Aces
-        else if(card.rank === 'A'){
-            totalValue += 1;
-            aces++;
-        }
-        // Number Cards
-        else {
-            totalValue += Number(card.rank);
-        }
-    });
-
-    // Loop through aces and try to add 10 to get highest value of hand
-    // We are adding 10 here because we already added 1 for the ace above
-    for(var i=0; i<aces; i++){
-        // Only add 10 if we can without busting
-        if(totalValue <= _maxScore - 10){
-            totalValue += 10;
-        }
-    }
-
-    return totalValue;
 }
