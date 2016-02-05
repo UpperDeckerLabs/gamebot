@@ -13,5 +13,8 @@
     "botkit": "0.0.5",
     "connect": "^3.4.1",
     "serve-static": "^1.10.2"
+  },
+  "engines": {
+      "node": "5.0.0"
   }
 }
