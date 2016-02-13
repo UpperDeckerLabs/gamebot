@@ -5,10 +5,15 @@ var process = require('process');
 var token = require('./token');
 var game21 = require('./game.21');
 var Server = require('./server');
+var BotHelpers = require('./bothelpers');
+var UserData = require('./userdata');
+var Storage = require('./storage');
 
 var port = process.env.PORT ? process.env.PORT : 8080;
 
 var folder = path.join(__dirname, 'static');
+
+var storage = new Storage('userData.json');
 
 Server.run(port, folder);
 
@@ -24,6 +29,19 @@ controller.spawn({
     }
 });
 
-controller.hears('^21', ['direct_mention','mention'], function(bot, message) {
-    game21.newGame(bot, message);
+controller.hears('^22', ['direct_mention','mention'], function(bot, message) {
+    game21.newGame(bot, message, storage);
+});
+
+controller.hears('^money', ['direct_mention', 'mention'], function(bot, message) {
+    BotHelpers.getUserFromBot(bot, message).then(getUserMoney);
+
+    function getUserMoney(user) {
+        var data = new UserData(user.name, storage);
+        bot.reply(message, user.name + ', you have: $' + data.getMoney());
+    }
+});
+
+controller.hears('^help', ['direct_mention', 'mention'], function(bot, message) {
+    bot.reply(message, 'You can say: "21" to play, or "money" to see your bank.');
 });
