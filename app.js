@@ -29,7 +29,7 @@ controller.spawn({
     }
 });
 
-controller.hears('^22', ['direct_mention','mention'], function(bot, message) {
+controller.hears('^21', ['direct_mention','mention'], function(bot, message) {
     game21.newGame(bot, message, storage);
 });
 
