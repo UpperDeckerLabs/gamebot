@@ -1,6 +1,8 @@
 var Deck = require('./deck');
 var Dealer = require('./dealer');
 var Hand = require('./hand');
+var UserData = require('./userdata');
+
 
 var game = {
     newGame: newGame
@@ -10,7 +12,7 @@ module.exports = game;
 
 var _maxScore = 21;
 
-function newGame(bot, message) {
+function newGame(bot, message, storage) {
     var user;
     bot.startConversation(message, dealHand);
 
@@ -32,12 +34,15 @@ function newGame(bot, message) {
 
             dealer.addCard(deck.draw());
 
+            var data = new UserData(user.name, storage);
+
             var game = {
                 dealer: dealer,
                 deck:   deck,
                 hand:   hand,
                 user:   user,
-                busted: false
+                busted: false,
+                data:   data
             };
 
             takeTurn(game, response, convo);
@@ -109,16 +114,21 @@ function endGame(game, response, convo) {
         var dealerValue = game.dealer.hand.value();
         if (game.busted) {
             gameResult = 'Lost. Busted.';
+            game.data.updateMoney(-100);
         } else if (game.dealer.busted) {
             gameResult = 'Won! Dealer Busted!';
+            game.data.updateMoney(100);
         } else if (playerValue < dealerValue) {
             gameResult = 'Lost. Dealer Beat.';
+            game.data.updateMoney(-100);
         } else if (playerValue === dealerValue) {
             gameResult = 'Push';
         } else {
             gameResult = 'Won! Beat Dealer.';
+            game.data.updateMoney(100);
         }
         convo.say('Game ' + gameResult);
+        convo.say(game.user.name + ', you have: $' + game.data.getMoney());
         convo.next();
     });
 }
