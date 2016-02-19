@@ -15,6 +15,7 @@ Storage.prototype.loadUser = loadUser;
 Storage.prototype.initDB = initDB;
 Storage.prototype.save = save;
 Storage.prototype.createUserData = createUserData;
+Storage.prototype.allUsers = allUsers;
 
 module.exports = Storage;
 
@@ -51,6 +52,20 @@ function createUserData(userName) {
         };
 
     return this.users.insert(user);
+}
+
+function allUsers() {
+
+    return this.users
+        .chain()
+        .simplesort('money', true)
+        .data()
+        .map(function(user) {
+            return {
+                name: user.name,
+                value: user.money
+            }
+        });
 }
 
 function save() {

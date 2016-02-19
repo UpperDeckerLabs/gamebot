@@ -11,11 +11,9 @@ var Storage = require('./storage');
 
 var port = process.env.PORT ? process.env.PORT : 8080;
 
-var folder = path.join(__dirname, 'static');
-
 var storage = new Storage('userData.json');
 
-Server.run(port, folder);
+Server.run(port, storage);
 
 var controller = Botkit.slackbot({
     logLevel: 1
