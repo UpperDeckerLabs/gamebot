@@ -28,6 +28,21 @@ Deck.prototype.draw = function(){
     }
 };
 
+Deck.prototype.dealSpecificCard = function(suit, rank) {
+    var cardIndex = this.cards.findIndex(function(card) {
+        return card.rank === rank && card.suit === suit;
+    });
+    if (cardIndex) {
+        var card = this.cards.splice(cardIndex, 1);
+        this.dealt.push(card[0]);
+        return card[0];
+    }
+    else {
+        return false;
+    }
+
+}
+
 Deck.prototype.shuffle = function () {
     /**
         * Knuth Shuffle Implementation

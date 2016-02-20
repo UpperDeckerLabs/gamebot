@@ -37,12 +37,13 @@ function newGame(bot, message, storage) {
             var data = new UserData(user.name, storage);
 
             var game = {
-                dealer: dealer,
-                deck:   deck,
-                hand:   hand,
-                user:   user,
-                busted: false,
-                data:   data
+                dealer:  dealer,
+                deck:    deck,
+                hand:    hand,
+                user:    user,
+                busted:  false,
+                data:    data,
+                natural: false
             };
 
             takeTurn(game, response, convo);
@@ -51,6 +52,16 @@ function newGame(bot, message, storage) {
             console.log('Starting game with user: ' + user.name);
         });
     }
+}
+
+/**
+ * Since this is blackjack specific, we are going to leave this out of the
+ * hand class.
+ *
+ * Natural blackjack is a value of 21 from two cards.
+ */
+function isNatural(hand) {
+    return hand.value() === 21 && hand.cards.length === 2;
 }
 
 function hitCard(game, response, convo) {
@@ -82,27 +93,36 @@ function busted(game, response, convo) {
 function takeTurn(game, response, convo) {
     convo.say(game.user.name + ', your hand: ' + game.hand.print());
     convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
-    convo.ask('Would you like to "(H)IT or (S)TAY"?', [
-        {
-            pattern: /^(h|H|hit|Hit|HIT)/i,
-            callback: function(response, convo) {
-                hitCard(game, response, convo);
+
+    if (isNatural(game.hand)) {
+        convo.say(game.user.name + ' BLACKJACK!');
+        game.natural = true;
+        endGame(game, response, convo);
+        convo.next();
+    }
+    else {
+        convo.ask('Would you like to "(H)IT or (S)TAY"?', [
+            {
+                pattern: /^(h|H|hit|Hit|HIT)/i,
+                callback: function(response, convo) {
+                    hitCard(game, response, convo);
+                }
+            },
+            {
+                pattern: /^(s|S|stay|Stay|STAY)/i,
+                callback: function(response, convo) {
+                    stay(game, response, convo);
+                }
+            },
+            {
+                default: true,
+                callback: function(response, convo) {
+                    convo.repeat();
+                    convo.next();
+                }
             }
-        },
-        {
-            pattern: /^(s|S|stay|Stay|STAY)/i,
-            callback: function(response, convo) {
-                stay(game, response, convo);
-            }
-        },
-        {
-            default: true,
-            callback: function(response, convo) {
-                convo.repeat();
-                convo.next();
-            }
-        }
-    ]);
+        ]);
+    }
 }
 
 function endGame(game, response, convo) {
@@ -115,6 +135,14 @@ function endGame(game, response, convo) {
         if (game.busted) {
             gameResult = 'Lost. Busted.';
             game.data.updateMoney(-100);
+        } else if (game.natural) {
+            if (isNatural(game.dealer.hand)) {
+                // Both have blackjack, push
+                gameResult = 'Push. Both Players Blackjack.';
+            }  else {
+                gameResult = 'Won! Blackjack!';
+                game.data.updateMoney(150);
+            }
         } else if (game.dealer.busted) {
             gameResult = 'Won! Dealer Busted!';
             game.data.updateMoney(100);
@@ -122,7 +150,13 @@ function endGame(game, response, convo) {
             gameResult = 'Lost. Dealer Beat.';
             game.data.updateMoney(-100);
         } else if (playerValue === dealerValue) {
-            gameResult = 'Push';
+            if (isNatural(game.dealer.hand)) {
+                // Dealer wins with a natural blackjack
+                gameResult = 'Lost. Dealer Blackjack.';
+                game.data.updateMoney(-100);
+            }  else {
+                gameResult = 'Push';
+            }
         } else {
             gameResult = 'Won! Beat Dealer.';
             game.data.updateMoney(100);
