@@ -43,7 +43,8 @@ function newGame(bot, message, storage) {
                 user:    user,
                 busted:  false,
                 data:    data,
-                natural: false
+                natural: false,
+                bet:     100
             };
 
             takeTurn(game, response, convo);
@@ -65,7 +66,6 @@ function isNatural(hand) {
 }
 
 function hitCard(game, response, convo) {
-    convo.say('hitting');
     game.hand.add(game.deck.draw());
     if (game.hand.value() > _maxScore) {
         busted(game, response, convo);
@@ -77,7 +77,6 @@ function hitCard(game, response, convo) {
 }
 
 function stay(game, response, convo) {
-    convo.say('staying');
     endGame(game, response, convo);
     convo.next();
 }
@@ -101,7 +100,11 @@ function takeTurn(game, response, convo) {
         convo.next();
     }
     else {
-        convo.ask('Would you like to "(H)IT or (S)TAY"?', [
+        var ask = 'Would you like to "(H)IT or (S)TAY"?'
+        if (canDoubleDown(game.hand)) {
+            ask = 'Would you like to "(H)IT, (S)TAY or (D)OUBLE DOWN"?';
+        }
+        convo.ask(ask , [
             {
                 pattern: /^(h|H|hit|Hit|HIT)/i,
                 callback: function(response, convo) {
@@ -115,6 +118,19 @@ function takeTurn(game, response, convo) {
                 }
             },
             {
+                pattern: /^(d|D|double|Double|DOUBLE|DD|dd)/i,
+                callback: function(response, convo) {
+                    if(canDoubleDown(game.hand)) {
+                        doubleDown(game, response, convo);
+                        // doubleDown(game, response, convo);
+                    }
+                    else {
+                        convo.repeat();
+                        convo.next();
+                    }
+                }
+            },
+            {
                 default: true,
                 callback: function(response, convo) {
                     convo.repeat();
@@ -123,6 +139,22 @@ function takeTurn(game, response, convo) {
             }
         ]);
     }
+}
+
+function doubleDown(game, response, convo) {
+    game.bet = game.bet * 2;
+    game.hand.add(game.deck.draw());
+    if (game.hand.value() > _maxScore) {
+        busted(game, response, convo);
+    }
+    else {
+        endGame(game, response, convo);
+    }
+    convo.next();
+}
+
+function canDoubleDown(hand) {
+    return hand.cards.length == 2;
 }
 
 function endGame(game, response, convo) {
@@ -134,32 +166,32 @@ function endGame(game, response, convo) {
         var dealerValue = game.dealer.hand.value();
         if (game.busted) {
             gameResult = 'Lost. Busted.';
-            game.data.updateMoney(-100);
+            game.data.updateMoney(-1 * game.bet);
         } else if (game.natural) {
             if (isNatural(game.dealer.hand)) {
                 // Both have blackjack, push
                 gameResult = 'Push. Both Players Blackjack.';
             }  else {
                 gameResult = 'Won! Blackjack!';
-                game.data.updateMoney(150);
+                game.data.updateMoney(1.5 * game.bet);
             }
         } else if (game.dealer.busted) {
             gameResult = 'Won! Dealer Busted!';
-            game.data.updateMoney(100);
+            game.data.updateMoney(1 * game.bet);
         } else if (playerValue < dealerValue) {
             gameResult = 'Lost. Dealer Beat.';
-            game.data.updateMoney(-100);
+            game.data.updateMoney(-1 * game.bet);
         } else if (playerValue === dealerValue) {
             if (isNatural(game.dealer.hand)) {
                 // Dealer wins with a natural blackjack
                 gameResult = 'Lost. Dealer Blackjack.';
-                game.data.updateMoney(-100);
+                game.data.updateMoney(-1 * game.bet);
             }  else {
                 gameResult = 'Push';
             }
         } else {
             gameResult = 'Won! Beat Dealer.';
-            game.data.updateMoney(100);
+            game.data.updateMoney(1 * game.bet);
         }
         convo.say('Game ' + gameResult);
         convo.say(game.user.name + ', you have: $' + game.data.getMoney());
