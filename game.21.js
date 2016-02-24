@@ -88,15 +88,14 @@ function busted(game, response, convo) {
 }
 
 function takeTurn(game, response, convo) {
-    convo.say(game.user.name + ', your hand: ' + game.hand.print());
-    convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
-
     if (isNatural(game.hand)) {
         game.natural = true;
         endGame(game, response, convo);
         convo.next();
     }
     else {
+        convo.say(game.user.name + ', your hand: ' + game.hand.print());
+        convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
         var ask = 'Would you like to "(H)IT or (S)TAY"?'
         if (canDoubleDown(game.hand)) {
             ask = 'Would you like to "(H)IT, (S)TAY or (D)OUBLE DOWN"?';
