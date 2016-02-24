@@ -82,8 +82,6 @@ function stay(game, response, convo) {
 }
 
 function busted(game, response, convo) {
-    convo.say(game.user.name + ', your hand: ' + game.hand.print());
-    convo.say('BUSTED!');
     game.busted = true;
     endGame(game, response, convo);
     convo.next();
@@ -94,7 +92,6 @@ function takeTurn(game, response, convo) {
     convo.say(game.user.name + ', dealer hand: ' + game.dealer.hand.print());
 
     if (isNatural(game.hand)) {
-        convo.say(game.user.name + ' BLACKJACK!');
         game.natural = true;
         endGame(game, response, convo);
         convo.next();
@@ -122,7 +119,6 @@ function takeTurn(game, response, convo) {
                 callback: function(response, convo) {
                     if(canDoubleDown(game.hand)) {
                         doubleDown(game, response, convo);
-                        // doubleDown(game, response, convo);
                     }
                     else {
                         convo.repeat();
