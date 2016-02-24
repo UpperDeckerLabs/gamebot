@@ -8,7 +8,7 @@ var server = {
 function run(port, storage) {
     var app = express();
 
-    app.set('views', './server/views');
+    app.set('views', './app/server/views');
     app.set('view engine', 'jade');
 
     app.get('/', function (req, res) {

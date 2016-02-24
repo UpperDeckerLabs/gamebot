@@ -1,7 +1,9 @@
-var Deck = require('./deck');
-var Dealer = require('./dealer');
-var Hand = require('./hand');
-var UserData = require('./userdata');
+var Cards = require('../cards');
+
+var Deck = Cards.Deck;
+var Dealer = Cards.Dealer;
+var Hand = Cards.Hand;
+var UserData = require('../userdata');
 
 
 var game = {
