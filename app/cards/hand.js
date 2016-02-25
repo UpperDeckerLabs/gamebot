@@ -7,11 +7,67 @@ function Hand() {
 Hand.prototype.add = add;
 Hand.prototype.value = value;
 Hand.prototype.print = print;
+Hand.prototype.empty = empty;
+Hand.prototype.replace = replace;
+Hand.prototype.hasCard = hasCard;
+Hand.prototype.countCardsType = countCardsType;
 
 module.exports = Hand;
 
 function add(card) {
     this.cards.push(card);
+}
+
+function empty() {
+    this.cards = [];
+}
+
+function replace(card, index) {
+    this.cards[index] = card;
+}
+
+function hasCard(rank, suit) {
+    var cardFound = false;
+    if (rank && suit) {
+        cardFound = this.cards.some(function(card) {
+            return card.rank === rank && card.suit === suit;
+        });
+    }
+    else if (rank) {
+        cardFound = this.cards.some(function(card) {
+            return card.rank === rank;
+        });
+    }
+    else if (suit) {
+        cardFound = this.cards.some(function(card) {
+            return card.suit === suit;
+        });
+    }
+    return cardFound;
+}
+
+function countCardsType(rank, suit) {
+    var count = 0;
+
+    this.cards.forEach(function(card) {
+        if (rank && suit) {
+            if (card.rank === rank && card.suit === suit) {
+                count++;
+            }
+        }
+        else if (rank) {
+            if (card.rank === rank) {
+                count++;
+            }
+        }
+        else if (suit) {
+            if (card.suit === suit) {
+                count++;
+            }
+        }
+    });
+
+    return count;
 }
 
 function value() {
@@ -48,11 +104,13 @@ function value() {
     return totalValue;
 }
 
-function print() {
+function print(showValue) {
     var print = '';
     this.cards.forEach(function(card) {
         print += card.pretty() + ' ';
     });
-    print += '(' + this.value() + ')';
+    if (showValue) {
+        print += '(' + this.value() + ')';
+    }
     return print;
 }

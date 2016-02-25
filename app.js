@@ -4,6 +4,7 @@ var process = require('process');
 
 var token = require('./app/token');
 var game21 = require('./app/blackjack/game.21');
+var Poker = require('./app/poker');
 var Server = require('./app/server');
 var BotHelpers = require('./app/bothelpers');
 var UserData = require('./app/userdata');
@@ -29,6 +30,14 @@ controller.spawn({
 
 controller.hears('^21', ['direct_mention','mention'], function(bot, message) {
     game21.newGame(bot, message, storage);
+});
+
+controller.hears('^poker rules', ['direct_mention','mention'], function(bot, message) {
+    Poker.rules(bot, message);
+});
+
+controller.hears('^poker', ['direct_mention','mention'], function(bot, message) {
+    Poker.newGame(bot, message, storage);
 });
 
 controller.hears('^money', ['direct_mention', 'mention'], function(bot, message) {
