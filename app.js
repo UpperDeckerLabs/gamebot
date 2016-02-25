@@ -2,12 +2,13 @@ var Botkit = require('botkit');
 var path = require('path');
 var process = require('process');
 
-var token = require('./token');
-var game21 = require('./game.21');
-var Server = require('./server');
-var BotHelpers = require('./bothelpers');
-var UserData = require('./userdata');
-var Storage = require('./storage');
+var token = require('./app/token');
+var game21 = require('./app/blackjack/game.21');
+var Poker = require('./app/poker');
+var Server = require('./app/server');
+var BotHelpers = require('./app/bothelpers');
+var UserData = require('./app/userdata');
+var Storage = require('./app/storage');
 
 var port = process.env.PORT ? process.env.PORT : 8080;
 
@@ -29,6 +30,14 @@ controller.spawn({
 
 controller.hears('^21', ['direct_mention','mention'], function(bot, message) {
     game21.newGame(bot, message, storage);
+});
+
+controller.hears('^poker rules', ['direct_mention','mention'], function(bot, message) {
+    Poker.rules(bot, message);
+});
+
+controller.hears('^poker', ['direct_mention','mention'], function(bot, message) {
+    Poker.newGame(bot, message, storage);
 });
 
 controller.hears('^money', ['direct_mention', 'mention'], function(bot, message) {
