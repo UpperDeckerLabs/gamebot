@@ -10,6 +10,8 @@ var BotHelpers = require('./app/bothelpers');
 var UserData = require('./app/userdata');
 var Storage = require('./app/storage');
 
+var pjson = require('./package.json');
+
 var port = process.env.PORT ? process.env.PORT : 8080;
 
 var storage = new Storage('userData.json');
@@ -52,3 +54,7 @@ controller.hears('^money', ['direct_mention', 'mention'], function(bot, message)
 controller.hears('^help', ['direct_mention', 'mention'], function(bot, message) {
     bot.reply(message, 'You can say: "21" to play, or "money" to see your bank.');
 });
+
+controller.hears('^version', ['direct_mention', 'mention'], function(bot, message) {
+    bot.reply(message, 'Current version: ' + pjson.version);
+})
