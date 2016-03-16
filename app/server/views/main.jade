@@ -1,0 +1,11 @@
+html
+  head
+    title Gamebot Server
+  body
+    h1 Gamebot Server
+    ul
+        li Gamebot is running
+        li= "Uptime: " + uptime
+        li= "Server: " + server
+        if error
+            li= "Error: " + error
