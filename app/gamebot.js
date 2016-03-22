@@ -9,7 +9,6 @@ var Botkit = require('botkit');
 var game21 = require('./blackjack/game.21');
 var Poker =  require('./poker');
 
-var token =      require('./token');
 var BotHelpers = require('./bothelpers');
 var UserData =   require('./userdata');
 
@@ -20,7 +19,7 @@ var _controller;
 var _error;
 var _bot;
 
-function start(storage) {
+function start(storage, token) {
     _storage = storage;
 
     _controller = Botkit.slackbot({
